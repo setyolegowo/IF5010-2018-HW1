@@ -12,6 +12,7 @@ public class Instruction{
         this.instruction = sc.next();
         this.branchTarget = sc.next();
         this.isTaken = (sc.next() == "1") ? true : false;
+        sc.close();
     }
 
     public String getInstruction() {
