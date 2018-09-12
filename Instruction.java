@@ -7,7 +7,8 @@ public class Instruction{
     private Boolean isTaken;
 
     public Instruction(String line){
-        Scanner sc = new Scanner(line).useDelimiter(" ");
+        Scanner sc = new Scanner(line);
+        sc.useDelimiter("\\s+");
 
         this.instruction = sc.next();
         this.branchTarget = sc.next();
