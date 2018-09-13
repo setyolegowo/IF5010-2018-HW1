@@ -1,3 +1,4 @@
+package id.ac.itb.if5010.hw1.components;
 
 import java.util.Scanner;
 

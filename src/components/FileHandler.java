@@ -1,3 +1,5 @@
+package id.ac.itb.if5010.hw1.components;
+
 import java.util.*;
 import java.io.*; 
 import java.nio.file.*;
@@ -6,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 public class FileHandler {
 
 
-    private List<Instruction> instructionList;
+    private final List<Instruction> instructionList;
     private int index;
 
     
