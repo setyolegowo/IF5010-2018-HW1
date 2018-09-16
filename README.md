@@ -19,5 +19,5 @@ jar cmvf META-INF/MANIFEST.MF dist/app.jar -C build .
 
 # Cara menjalankan file jar
 ```
-java -jar dist/app.jar
+java -jar dist/app.jar -btbsize 4 -warmstart
 ```

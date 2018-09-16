@@ -37,7 +37,13 @@ public class FileHandler {
 
     public Instruction next(){
         index += 1;
-        return instructionList.get(index);
+		
+		if (index < instructionList.size()) {
+			return instructionList.get(index);
+		}
+		else {
+			return null;
+		}
     }
 
     public void reset(){

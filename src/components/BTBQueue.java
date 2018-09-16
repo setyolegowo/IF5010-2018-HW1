@@ -100,17 +100,21 @@ public class BTBQueue
         return offer(instruction, predictionAddress);
     }
 
-    private BTBItem lookUp(String instruction) {
+    public BTBItem lookUp(String instruction) {
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i) == null) {
                 return null;
             }
 
-            if (list.get(i).instruction == instruction) {
+            if (list.get(i).instruction.equals(instruction)) {
                 return list.get(i);
             }
         }
 
         return null;
     }
+	
+	public boolean isEmptyNext() {
+		return list.size() < maxSize;
+	}
 }
