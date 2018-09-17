@@ -36,11 +36,11 @@ public class Main {
 
         System.out.println("\nSummary : ");
         System.out.println(String.format("Total entry : %d", result[0]));
-        System.out.println(String.format("Total BTB hit : %.2f%%", btbQueue.getHitRate() * 100));
-        System.out.println(String.format("Total BTB miss : %.2f%%", btbQueue.getMissRate() * 100));
-        System.out.println(String.format("Total correct prediction : %.2f%%", result[1] * 100d / result[0]));
-        System.out.println(String.format("Total incorrect prediction : %.2f%%", result[2] * 100d / result[0]));
-        System.out.println(String.format("Total BTB overwrite : %d", btbQueue.getTotalOverwrite()));
+        System.out.println(String.format("Total BTB hit : %d (%.2f%%)", btbQueue.getTotalHit(), btbQueue.getHitRate() * 100));
+        System.out.println(String.format("Total BTB miss : %d (%.2f%%)", btbQueue.getTotalMiss(), btbQueue.getMissRate() * 100));
+        System.out.println(String.format("Total correct prediction : %d (%.2f%%)", result[1], result[1] * 100d / result[0]));
+        System.out.println(String.format("Total incorrect prediction : %d (%.2f%%)", result[2], result[2] * 100d / result[0]));
+        System.out.println(String.format("Total BTB overwrite : %d\n\n", btbQueue.getTotalOverwrite()));
     }
 
     private static void parseConfiguration(String[] args) {
@@ -142,7 +142,7 @@ public class Main {
             }
         }
 
-        System.out.println(String.format("Common instruction : %s (%d occurences)", maxkey, maxvalue));
+        System.out.println(String.format("\nCommon instruction : %s (%d occurences)", maxkey, maxvalue));
 
         return new int[] { entry, correct, incorrect };
     }
