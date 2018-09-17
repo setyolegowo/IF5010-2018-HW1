@@ -36,12 +36,28 @@ public class BTBQueue
     public final int maxSize;
 
     /**
+     * Statistic overwrite;
+     */
+    private int statisticOverwrite;
+
+    /**
+     * Statistic for total hit.
+     */
+    private int statisticHit;
+
+    /**
+     * Statistic for miss rate.
+     */
+    private int statisticMiss;
+
+    /**
      * @param queueSize Queue size.
      */
     public BTBQueue(int queueSize) {
         maxSize = queueSize;
         list = Collections.synchronizedList(new ArrayList<BTBItem>(maxSize));
         position = maxSize - 1;
+        resetStatistic();
     }
 
     private void incrementPosition() {
@@ -54,24 +70,19 @@ public class BTBQueue
     }
 
     public boolean offer(BTBItem item) {
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i) == null) {
-                break;
-            }
-
-            if (item.instruction == list.get(i).instruction) {
-                throw new IllegalArgumentException("You cannot offer same instruction");
-            }
-        }
-
         // Offered item is not in buffer, add or overwrite.
         incrementPosition();
         if (position < list.size()) {
+            if (list.get(position) != null) {
+                statisticOverwrite++;
+            }
+
             list.set(position, item);
         } else {
             list.add(item);
         }
         list.get(position).resetPrediction();
+
         return true;
     }
 
@@ -90,7 +101,13 @@ public class BTBQueue
      * Whether the instruction is in buffer.
      */
     public boolean isHit(String instruction) {
-        return lookUp(instruction) != null;
+        boolean retval = lookUp(instruction) != null;
+        if (retval) {
+            statisticHit++;
+        }  else {
+            statisticMiss++;
+        }
+        return retval;
     }
 
     /**
@@ -100,10 +117,28 @@ public class BTBQueue
         return offer(instruction, predictionAddress);
     }
 
+    /**
+     * @return True if the instruction is inside BTB, else otherwise.
+     */
+    public boolean delete(String instruction) {
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i) == null) {
+                continue;
+            }
+
+            if (list.get(i).instruction.equals(instruction)) {
+                list.set(i, null);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public BTBItem lookUp(String instruction) {
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i) == null) {
-                return null;
+                continue;
             }
 
             if (list.get(i).instruction.equals(instruction)) {
@@ -113,8 +148,32 @@ public class BTBQueue
 
         return null;
     }
-	
-	public boolean isEmptyNext() {
-		return list.size() < maxSize;
-	}
+
+    public boolean isEmptyNext() {
+        return list.size() < maxSize;
+    }
+
+    public void resetStatistic() {
+        statisticOverwrite = statisticHit = statisticMiss = 0;
+    }
+
+    public int getTotalOverwrite() {
+        return statisticOverwrite;
+    }
+
+    public float getMissRate() {
+        return (statisticMiss/(statisticHit + statisticMiss));
+    }
+
+    public int getTotalMiss() {
+        return statisticMiss;
+    }
+
+    public float getHitRate() {
+        return (statisticHit/(statisticHit + statisticMiss));
+    }
+
+    public int getTotalHit() {
+        return statisticHit;
+    }
 }

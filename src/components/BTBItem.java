@@ -35,11 +35,11 @@ public class BTBItem
     }
 
     public void taken() {
-        predictionBits = ((predictionBits << 1) + 1) ^ PREDICTION_MAX_VALUE;
+        predictionBits = ((predictionBits << 1) + 1) & PREDICTION_MAX_VALUE;
     }
 
     public void notTaken() {
-        predictionBits = (predictionBits << 1) ^ PREDICTION_MAX_VALUE;
+        predictionBits = (predictionBits << 1) & PREDICTION_MAX_VALUE;
     }
 
     public void resetPrediction() {
