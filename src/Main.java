@@ -4,11 +4,12 @@ import id.ac.itb.if5010.hw1.components.*;
 import java.util.*;
 
 public class Main {
-    private static final String HISTORY_FILENAME = "history.txt";
 
     // attribute
     private static boolean warmStart = false;
     private static int btbSize = 4;
+	private static String historyFilename = "history.txt";
+	private static boolean verbose = false;
     private static int entry, hit, miss, correct, incorrect, overwrite, value;
     private static FileHandler fileHandler;
     private static BTBQueue btbQueue;
@@ -21,7 +22,7 @@ public class Main {
         parseConfiguration(args);
 
         // init file handler, btb queue, and predictionTable
-        fileHandler = new FileHandler(HISTORY_FILENAME);
+        fileHandler = new FileHandler(historyFilename);
         btbQueue = new BTBQueue(btbSize);
 		predictionTable = new boolean[4];
 		
@@ -54,6 +55,13 @@ public class Main {
             else if (args[count].equals("-warmstart")) {
                 warmStart = true;
             }
+			else if (args[count].equals("-historyfile")) {
+				count++;
+				historyFilename = args[count];
+			}
+			else if (args[count].equals("-verbose")) {
+				verbose = true;
+			}
 
             count++;
         }
@@ -70,7 +78,7 @@ public class Main {
         dictionary = new HashMap<>();
 
         while ((instruction = fileHandler.next()) != null) {
-            System.out.print(instruction.getInstruction());
+            
             entry++;
 
             if (dictionary.containsKey(instruction.getInstruction())) {
@@ -85,30 +93,21 @@ public class Main {
 			boolean prediction = predictionTable[globalHistory];
 			boolean actual = instruction.getIsTaken();
 			boolean hit = btbQueue.isHit(instruction.getInstruction());
+			boolean isCorrect = prediction == actual;
 			
-			System.out.print(prediction ? "\tT" : "\tNT");
-			System.out.print(actual ? "\tT" : "\tNT");
-			System.out.print(hit ? "\tHit" : "\tMiss");
+			if (verbose) {
+				System.out.print(instruction.getInstruction());
+				System.out.print(prediction ? "\tT" : "\tNT");
+				System.out.print(actual ? "\tT" : "\tNT");
+				System.out.print(hit ? "\tHit" : "\tMiss");
+				System.out.println(isCorrect ? "\tCorrect" : "\tIncorrect");
+			}
 			
-			if (prediction) {
-				if (actual) {
-					System.out.print("\tCorrect");
-					correct++;
-				}
-				else {
-					System.out.print("\tIncorrect");
-					incorrect++;
-				}
+			if (isCorrect) {
+				correct++;
 			}
 			else {
-				if (actual) {
-					System.out.print("\tIncorrect");
-					incorrect++;
-				}
-				else {
-					System.out.print("\tCorrect");
-					correct++;
-				}
+				incorrect++;
 			}
 			
 			if (hit) {
@@ -124,8 +123,6 @@ public class Main {
 			
 			predictionTable[globalHistory] = instruction.getIsTaken();
 			globalHistory = ((globalHistory << 1) & 3) + (instruction.getIsTaken() ? 1 : 0);
-
-            System.out.println();
         }
 
         int maxvalue = 0;
