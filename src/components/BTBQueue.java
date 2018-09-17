@@ -162,7 +162,7 @@ public class BTBQueue
     }
 
     public float getMissRate() {
-        return (statisticMiss/(statisticHit + statisticMiss));
+        return ((float)statisticMiss/(statisticHit + statisticMiss));
     }
 
     public int getTotalMiss() {
@@ -170,7 +170,7 @@ public class BTBQueue
     }
 
     public float getHitRate() {
-        return (statisticHit/(statisticHit + statisticMiss));
+        return ((float)statisticHit/(statisticHit + statisticMiss));
     }
 
     public int getTotalHit() {

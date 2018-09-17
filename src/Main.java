@@ -12,31 +12,35 @@ public class Main {
     private static int entry, hit, miss, correct, incorrect, overwrite, value;
     private static FileHandler fileHandler;
     private static BTBQueue btbQueue;
+	private static boolean[] predictionTable;
+	private static int globalHistory = 0;
 
     public static void main(String[] args) {
 
         // read configuration
         parseConfiguration(args);
 
-        // init file handler and btb queue
+        // init file handler, btb queue, and predictionTable
         fileHandler = new FileHandler(HISTORY_FILENAME);
         btbQueue = new BTBQueue(btbSize);
-
+		predictionTable = new boolean[4];
+		
         // run algorithm
         int[] result = runPrediction();
 
         if (warmStart) {
             fileHandler.reset();
+			btbQueue.resetStatistic();
             result = runPrediction();
         }
 
         System.out.println("\nSummary : ");
         System.out.println(String.format("Total entry : %d", result[0]));
-        System.out.println(String.format("Total BTB hit : %d (%.2f%%)", result[1], result[1] * 100d / result[0]));
-        System.out.println(String.format("Total BTB miss : %d (%.2f%%)", result[2], result[2] * 100d / result[0]));
-        System.out.println(String.format("Total correct prediction : %d (%.2f%%)", result[3], result[3] * 100d / result[0]));
-        System.out.println(String.format("Total incorrect prediction : %d (%.2f%%)", result[4], result[4] * 100d / result[0]));
-        System.out.println(String.format("Total BTB overwrite : %d", result[5]));
+        System.out.println(String.format("Total BTB hit : %.2f%%", btbQueue.getHitRate() * 100));
+        System.out.println(String.format("Total BTB miss : %.2f%%", btbQueue.getMissRate() * 100));
+        System.out.println(String.format("Total correct prediction : %.2f%%", result[1] * 100d / result[0]));
+        System.out.println(String.format("Total incorrect prediction : %.2f%%", result[2] * 100d / result[0]));
+        System.out.println(String.format("Total BTB overwrite : %d", btbQueue.getTotalOverwrite()));
     }
 
     private static void parseConfiguration(String[] args) {
@@ -62,7 +66,7 @@ public class Main {
         Instruction instruction;
         Map<String, Integer> dictionary;
 
-        entry = hit = miss = correct = incorrect = overwrite = 0;
+        entry = correct = incorrect = 0;
         dictionary = new HashMap<>();
 
         while ((instruction = fileHandler.next()) != null) {
@@ -76,48 +80,50 @@ public class Main {
             else {
                 dictionary.put(instruction.getInstruction(), 1);
             }
-
-            if (btbQueue.isHit(instruction.getInstruction())) {
-                System.out.print("\tHit");
-                hit++;
-
-                BTBItem btbItem = btbQueue.lookUp(instruction.getInstruction());
-
-                if (!btbItem.isTaken() ^ instruction.getIsTaken()) {
-                    System.out.print(String.format("\t%s\t%s\tCorrect", instruction.getIsTaken() ? "T" : "NT", btbItem.isTaken() ? "T" : "NT"));
-                    correct++;
-                }
-                else {
-                    System.out.print(String.format("\t%s\t%s\tIncorrect", instruction.getIsTaken() ? "T" : "NT", btbItem.isTaken() ? "T" : "NT"));
-                    incorrect++;
-
-                    if (instruction.getIsTaken()) {
-                        btbItem.taken();
-                    }
-                    else {
-                        btbItem.notTaken();
-                    }
-                }
-            }
-            else {
-                System.out.print("\tMiss");
-                miss++;
-
-                if (instruction.getIsTaken()) {
-                    System.out.print("\tT\t\tIncorrect");
-                    incorrect++;
-
-                    if (!btbQueue.isEmptyNext()) {
-                        overwrite++;
-                    }
-
-                    btbQueue.pushToBTB(instruction.getInstruction(), instruction.getBranchTarget());
-                }
-                else {
-                    System.out.print("\tNT\t\tCorrect");
-                    correct++;
-                }
-            }
+			
+			// get prediction result
+			boolean prediction = predictionTable[globalHistory];
+			boolean actual = instruction.getIsTaken();
+			boolean hit = btbQueue.isHit(instruction.getInstruction());
+			
+			System.out.print(prediction ? "\tT" : "\tNT");
+			System.out.print(actual ? "\tT" : "\tNT");
+			System.out.print(hit ? "\tHit" : "\tMiss");
+			
+			if (prediction) {
+				if (actual) {
+					System.out.print("\tCorrect");
+					correct++;
+				}
+				else {
+					System.out.print("\tIncorrect");
+					incorrect++;
+				}
+			}
+			else {
+				if (actual) {
+					System.out.print("\tIncorrect");
+					incorrect++;
+				}
+				else {
+					System.out.print("\tCorrect");
+					correct++;
+				}
+			}
+			
+			if (hit) {
+				if (!actual) {
+					btbQueue.delete(instruction.getInstruction());
+				}
+			}
+			else {
+				if (actual) {
+					btbQueue.pushToBTB(instruction.getInstruction(), instruction.getBranchTarget());
+				}
+			}
+			
+			predictionTable[globalHistory] = instruction.getIsTaken();
+			globalHistory = ((globalHistory << 1) & 3) + (instruction.getIsTaken() ? 1 : 0);
 
             System.out.println();
         }
@@ -138,6 +144,6 @@ public class Main {
 
         System.out.println(String.format("Common instruction : %s (%d occurences)", maxkey, maxvalue));
 
-        return new int[] { entry, hit, miss, correct, incorrect, overwrite };
+        return new int[] { entry, correct, incorrect };
     }
 }
