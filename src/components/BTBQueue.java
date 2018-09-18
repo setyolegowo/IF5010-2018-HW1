@@ -101,7 +101,7 @@ public class BTBQueue
             default:
                 throw new IllegalArgumentException("Queue Size is not in map");
         }
-        return tmp - 2;
+        return tmp;
     }
 
     private String getInstructionIndex(String originalInstruction) {
