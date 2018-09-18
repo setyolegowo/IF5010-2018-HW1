@@ -98,6 +98,12 @@ public class BTBQueue
             case 4:
                 tmp = 2;
                 break;
+            case 2:
+                tmp = 1;
+                break;
+            case 1:
+                tmp = 0;
+                break;
             default:
                 throw new IllegalArgumentException("Queue Size is not in map");
         }
