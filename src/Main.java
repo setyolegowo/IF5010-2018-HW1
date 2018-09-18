@@ -10,7 +10,6 @@ public class Main {
     private static int btbSize = 4;
     private static String historyFilename = "history.txt";
     private static boolean verbose = false;
-    private static int entry, hit, miss, correct, incorrect, overwrite, value;
     private static FileHandler fileHandler;
     private static BTBQueue btbQueue;
     private static boolean[] predictionTable;
@@ -37,10 +36,10 @@ public class Main {
 
         System.out.println("\nSummary : ");
         System.out.println(String.format("Total entry : %d", result[0]));
-        System.out.println(String.format("Total BTB hit : %d (%.2f%%)", btbQueue.getTotalHit(), btbQueue.getHitRate() * 100));
-        System.out.println(String.format("Total BTB miss : %d (%.2f%%)", btbQueue.getTotalMiss(), btbQueue.getMissRate() * 100));
-        System.out.println(String.format("Total correct prediction : %d (%.2f%%)", result[1], result[1] * 100d / result[0]));
-        System.out.println(String.format("Total incorrect prediction : %d (%.2f%%)", result[2], result[2] * 100d / result[0]));
+        System.out.println(String.format("Total BTB hit (rate): %d (%.2f%%)", btbQueue.getTotalHit(), btbQueue.getHitRate() * 100));
+        System.out.println(String.format("Total BTB miss (rate): %d (%.2f%%)", btbQueue.getTotalMiss(), btbQueue.getMissRate() * 100));
+        System.out.println(String.format("Total correct prediction (rate): %d (%.2f%%)", result[1], result[1] * 100d / result[0]));
+        System.out.println(String.format("Total incorrect prediction (rate): %d (%.2f%%)", result[2], result[2] * 100d / result[0]));
         System.out.println(String.format("Total BTB overwrite : %d\n\n", btbQueue.getTotalOverwrite()));
     }
 
@@ -73,35 +72,24 @@ public class Main {
 
         Instruction instruction;
         Map<String, Integer> dictionary;
+        int entry, correct, incorrect;
+        boolean prediction, actual, hit, isCorrect;
 
         entry = correct = incorrect = 0;
         dictionary = new HashMap<>();
 
         while ((instruction = fileHandler.next()) != null) {
-
             entry++;
 
-            if (dictionary.containsKey(instruction.getInstruction())) {
-                value = dictionary.get(instruction.getInstruction());
-                dictionary.put(instruction.getInstruction(), value + 1);
-            }
-            else {
-                dictionary.put(instruction.getInstruction(), 1);
-            }
+            putInstructionToDict(dictionary, instruction.getInstruction());
 
             // get prediction result
-            boolean prediction = predictionTable[globalHistory];
-            boolean actual = instruction.getIsTaken();
-            boolean hit = btbQueue.isHit(instruction.getInstruction());
-            boolean isCorrect = prediction == actual;
+            prediction = predictionTable[globalHistory];
+            actual = instruction.getIsTaken();
+            hit = btbQueue.isHit(instruction.getInstruction());
+            isCorrect = prediction == actual;
 
-            if (verbose) {
-                System.out.print(instruction.getInstruction());
-                System.out.print(prediction ? "\tT" : "\tNT");
-                System.out.print(actual ? "\tT" : "\tNT");
-                System.out.print(hit ? "\tHit" : "\tMiss");
-                System.out.println(isCorrect ? "\tCorrect" : "\tIncorrect");
-            }
+            printTrace(instruction.getInstruction(), prediction, actual, hit, isCorrect);
 
             if (isCorrect) {
                 correct++;
@@ -121,16 +109,35 @@ public class Main {
                 }
             }
 
-            predictionTable[globalHistory] = instruction.getIsTaken();
-            globalHistory = ((globalHistory << 1) & 3) + (instruction.getIsTaken() ? 1 : 0);
+            // Prepare for next
+            predictionTable[globalHistory] = actual;
+            globalHistory = ((globalHistory << 1) & 3) + (actual ? 1 : 0);
         }
 
+        String[] max = getMostInstruction(dictionary);
+        System.out.println(String.format("\nCommon instruction : %s (%s occurences)", max[0], max[1]));
+
+        return new int[] { entry, correct, incorrect };
+    }
+
+    private static int value;
+
+    private static void putInstructionToDict(Map<String, Integer> dict, String instruction) {
+        if (dict.containsKey(instruction)) {
+            value = dict.get(instruction);
+            dict.put(instruction, value + 1);
+        }
+        else {
+            dict.put(instruction, 1);
+        }
+    }
+
+    private static String[] getMostInstruction(Map<String, Integer> dict) {
         int maxvalue = 0;
-        Iterator iterator = dictionary.entrySet().iterator();
+        Iterator iterator = dict.entrySet().iterator();
         String maxkey = "";
 
         while (iterator.hasNext()) {
-
             Map.Entry pair = (Map.Entry)iterator.next();
 
             if ((int)pair.getValue() > maxvalue) {
@@ -139,8 +146,16 @@ public class Main {
             }
         }
 
-        System.out.println(String.format("\nCommon instruction : %s (%d occurences)", maxkey, maxvalue));
+        return new String[] { maxkey, Integer.toString(maxvalue) };
+    }
 
-        return new int[] { entry, correct, incorrect };
+    private static void printTrace(String instruction, boolean prediction, boolean actual, boolean hit, boolean isCorrect) {
+        if (verbose) {
+            System.out.print(instruction);
+            System.out.print(prediction ? "\tT" : "\tNT");
+            System.out.print(actual ? "\tT" : "\tNT");
+            System.out.print(hit ? "\tHit" : "\tMiss");
+            System.out.println(isCorrect ? "\tCorrect" : "\tIncorrect");
+        }
     }
 }
