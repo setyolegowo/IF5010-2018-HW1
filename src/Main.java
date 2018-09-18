@@ -114,21 +114,8 @@ public class Main {
             globalHistory = ((globalHistory << 1) & 3) + (instruction.getIsTaken() ? 1 : 0);
         }
 
-        int maxvalue = 0;
-        Iterator iterator = dictionary.entrySet().iterator();
-        String maxkey = "";
-
-        while (iterator.hasNext()) {
-
-            Map.Entry pair = (Map.Entry)iterator.next();
-
-            if ((int)pair.getValue() > maxvalue) {
-                maxvalue = (int)pair.getValue();
-                maxkey = (String)pair.getKey();
-            }
-        }
-
-        System.out.println(String.format("\nCommon instruction : %s (%d occurences)", maxkey, maxvalue));
+        String[] max = getMostInstruction(dictionary);
+        System.out.println(String.format("\nCommon instruction : %s (%s occurences)", max[0], max[1]));
 
         return new int[] { entry, correct, incorrect };
     }
@@ -143,6 +130,23 @@ public class Main {
         else {
             dict.put(instruction, 1);
         }
+    }
+
+    private static String[] getMostInstruction(Map<String, Integer> dict) {
+        int maxvalue = 0;
+        Iterator iterator = dict.entrySet().iterator();
+        String maxkey = "";
+
+        while (iterator.hasNext()) {
+            Map.Entry pair = (Map.Entry)iterator.next();
+
+            if ((int)pair.getValue() > maxvalue) {
+                maxvalue = (int)pair.getValue();
+                maxkey = (String)pair.getKey();
+            }
+        }
+
+        return new String[] { maxkey, Integer.toString(maxvalue) };
     }
 
     private static void printTrace(String instruction, boolean prediction, boolean actual, boolean hit, boolean isCorrect) {
