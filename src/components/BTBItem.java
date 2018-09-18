@@ -26,6 +26,9 @@ public class BTBItem
     }
 
     public BTBItem(String _instruction, String _predictionAddress) {
+        if (_instruction == null) {
+            throw new java.lang.IllegalArgumentException("Instruction do not empty");
+        }
         instruction = _instruction;
         predictionAddress = _predictionAddress;
     }

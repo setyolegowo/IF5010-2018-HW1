@@ -8,13 +8,13 @@ public class Main {
     // attribute
     private static boolean warmStart = false;
     private static int btbSize = 4;
-	private static String historyFilename = "history.txt";
-	private static boolean verbose = false;
+    private static String historyFilename = "history.txt";
+    private static boolean verbose = false;
     private static int entry, hit, miss, correct, incorrect, overwrite, value;
     private static FileHandler fileHandler;
     private static BTBQueue btbQueue;
-	private static boolean[] predictionTable;
-	private static int globalHistory = 0;
+    private static boolean[] predictionTable;
+    private static int globalHistory = 0;
 
     public static void main(String[] args) {
 
@@ -24,14 +24,14 @@ public class Main {
         // init file handler, btb queue, and predictionTable
         fileHandler = new FileHandler(historyFilename);
         btbQueue = new BTBQueue(btbSize);
-		predictionTable = new boolean[4];
-		
+        predictionTable = new boolean[4];
+
         // run algorithm
         int[] result = runPrediction();
 
         if (warmStart) {
             fileHandler.reset();
-			btbQueue.resetStatistic();
+            btbQueue.resetStatistic();
             result = runPrediction();
         }
 
@@ -55,13 +55,13 @@ public class Main {
             else if (args[count].equals("-warmstart")) {
                 warmStart = true;
             }
-			else if (args[count].equals("-historyfile")) {
-				count++;
-				historyFilename = args[count];
-			}
-			else if (args[count].equals("-verbose")) {
-				verbose = true;
-			}
+            else if (args[count].equals("-historyfile")) {
+                count++;
+                historyFilename = args[count];
+            }
+            else if (args[count].equals("-verbose")) {
+                verbose = true;
+            }
 
             count++;
         }
@@ -78,7 +78,7 @@ public class Main {
         dictionary = new HashMap<>();
 
         while ((instruction = fileHandler.next()) != null) {
-            
+
             entry++;
 
             if (dictionary.containsKey(instruction.getInstruction())) {
@@ -88,41 +88,41 @@ public class Main {
             else {
                 dictionary.put(instruction.getInstruction(), 1);
             }
-			
-			// get prediction result
-			boolean prediction = predictionTable[globalHistory];
-			boolean actual = instruction.getIsTaken();
-			boolean hit = btbQueue.isHit(instruction.getInstruction());
-			boolean isCorrect = prediction == actual;
-			
-			if (verbose) {
-				System.out.print(instruction.getInstruction());
-				System.out.print(prediction ? "\tT" : "\tNT");
-				System.out.print(actual ? "\tT" : "\tNT");
-				System.out.print(hit ? "\tHit" : "\tMiss");
-				System.out.println(isCorrect ? "\tCorrect" : "\tIncorrect");
-			}
-			
-			if (isCorrect) {
-				correct++;
-			}
-			else {
-				incorrect++;
-			}
-			
-			if (hit) {
-				if (!actual) {
-					btbQueue.delete(instruction.getInstruction());
-				}
-			}
-			else {
-				if (actual) {
-					btbQueue.pushToBTB(instruction.getInstruction(), instruction.getBranchTarget());
-				}
-			}
-			
-			predictionTable[globalHistory] = instruction.getIsTaken();
-			globalHistory = ((globalHistory << 1) & 3) + (instruction.getIsTaken() ? 1 : 0);
+
+            // get prediction result
+            boolean prediction = predictionTable[globalHistory];
+            boolean actual = instruction.getIsTaken();
+            boolean hit = btbQueue.isHit(instruction.getInstruction());
+            boolean isCorrect = prediction == actual;
+
+            if (verbose) {
+                System.out.print(instruction.getInstruction());
+                System.out.print(prediction ? "\tT" : "\tNT");
+                System.out.print(actual ? "\tT" : "\tNT");
+                System.out.print(hit ? "\tHit" : "\tMiss");
+                System.out.println(isCorrect ? "\tCorrect" : "\tIncorrect");
+            }
+
+            if (isCorrect) {
+                correct++;
+            }
+            else {
+                incorrect++;
+            }
+
+            if (hit) {
+                if (!actual) {
+                    btbQueue.delete(instruction.getInstruction());
+                }
+            }
+            else {
+                if (actual) {
+                    btbQueue.pushToBTB(instruction.getInstruction(), instruction.getBranchTarget());
+                }
+            }
+
+            predictionTable[globalHistory] = instruction.getIsTaken();
+            globalHistory = ((globalHistory << 1) & 3) + (instruction.getIsTaken() ? 1 : 0);
         }
 
         int maxvalue = 0;
