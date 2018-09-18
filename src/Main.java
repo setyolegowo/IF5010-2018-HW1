@@ -36,10 +36,10 @@ public class Main {
 
         System.out.println("\nSummary : ");
         System.out.println(String.format("Total entry : %d", result[0]));
-        System.out.println(String.format("Total BTB hit : %d (%.2f%%)", btbQueue.getTotalHit(), btbQueue.getHitRate() * 100));
-        System.out.println(String.format("Total BTB miss : %d (%.2f%%)", btbQueue.getTotalMiss(), btbQueue.getMissRate() * 100));
-        System.out.println(String.format("Total correct prediction : %d (%.2f%%)", result[1], result[1] * 100d / result[0]));
-        System.out.println(String.format("Total incorrect prediction : %d (%.2f%%)", result[2], result[2] * 100d / result[0]));
+        System.out.println(String.format("Total BTB hit (rate): %d (%.2f%%)", btbQueue.getTotalHit(), btbQueue.getHitRate() * 100));
+        System.out.println(String.format("Total BTB miss (rate): %d (%.2f%%)", btbQueue.getTotalMiss(), btbQueue.getMissRate() * 100));
+        System.out.println(String.format("Total correct prediction (rate): %d (%.2f%%)", result[1], result[1] * 100d / result[0]));
+        System.out.println(String.format("Total incorrect prediction (rate): %d (%.2f%%)", result[2], result[2] * 100d / result[0]));
         System.out.println(String.format("Total BTB overwrite : %d\n\n", btbQueue.getTotalOverwrite()));
     }
 
@@ -79,7 +79,6 @@ public class Main {
         dictionary = new HashMap<>();
 
         while ((instruction = fileHandler.next()) != null) {
-
             entry++;
 
             putInstructionToDict(dictionary, instruction.getInstruction());
@@ -110,8 +109,9 @@ public class Main {
                 }
             }
 
-            predictionTable[globalHistory] = instruction.getIsTaken();
-            globalHistory = ((globalHistory << 1) & 3) + (instruction.getIsTaken() ? 1 : 0);
+            // Prepare for next
+            predictionTable[globalHistory] = actual;
+            globalHistory = ((globalHistory << 1) & 3) + (actual ? 1 : 0);
         }
 
         String[] max = getMostInstruction(dictionary);
